@@ -69,7 +69,7 @@ int Issue(int operand1, int operand2);
 * @param[in] operand2 
 * @return Result of operand1 - operand2
 */
-int Bookret(int operand1, int operand2);
+int bookret(int operand1, int operand2);
 
 /**
 *  adds the hospital quarantined of new people in operand2 to previously hospital quarantined people count in operand1 and returns the result
