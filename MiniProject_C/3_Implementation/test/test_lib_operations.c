@@ -28,7 +28,7 @@ int main() {
 /* Note: Do not edit END */
   
   
-  /* Add your test functions in this format for testing
+  /* Add your test functions in this format for testing*/
   CU_add_test(suite, "Addbook", test_Addbook);
   CU_add_test(suite, "Searchbook", test_Searchbook);
   CU_add_test(suite, "Displaybook", test_Displaybook);
@@ -38,7 +38,7 @@ int main() {
   CU_add_test(suite, "Issue", test_Issue);
   CU_add_test(suite, "bookret", test_bookret);
   CU_add_test(suite, "Addmembr", test_Addmembr);
-  CU_add_test(suite, "Exit", test_Exit);*/
+  CU_add_test(suite, "Exit", test_Exit);
 
 /* Note: Do not edit START*/
   /* Setup Test Framework to output the result to Screen */
