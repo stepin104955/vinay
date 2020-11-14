@@ -1,7 +1,6 @@
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
-#include<Windows.h>
 #include<time.h>
 
 #define FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO "E:\\CProject FILES\\USER_PASSWOED.txt"
