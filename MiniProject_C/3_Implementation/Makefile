@@ -1,7 +1,7 @@
 
   
 # Name of the project
-PROJECT_NAME = Covid
+PROJECT_NAME = Lib
 
 
 # Output directory
@@ -9,11 +9,11 @@ BUILD = build
 
 # All source code files
 SRC = project_main.c\
-src/covid_operations.c\
+src/lib_operations.c\
 
 # All test source files
-TEST_SRC = src/covid_operations.c\
-test/test_covid_operations.c
+TEST_SRC = src/lib_operations.c\
+test/test_lib_operations.c
 
 TEST_OUTPUT = $(BUILD)/Test_$(PROJECT_NAME).out
 
