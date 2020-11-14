@@ -1,541 +1,1352 @@
 #include<stdio.h>
-#include<ctype.h>
 #include<string.h>
 #include<stdlib.h>
+#include<Windows.h>
+#include<time.h>
 
-#define IN 1
-#define OUT 0
+#define FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO "E:\\CProject FILES\\USER_PASSWOED.txt"
+#define FILE_ADDRESS_FOR_BOOK_INFORMATION "E:\\CProject FILES\\BOOK_INFORMATION.txt"
+#define FILE_ADDRESS_FOR_UNIQUE_ID "E:\\CProject FILES\\UNIQUE_ID.txt"
+#define FILE_ADDRESS_FOR_UNIQUE_ID_FOR_USER "E:\\CProject FILES\\UNIQUE ID FOR USER.txt"
 
-void Addbook();
-void Searchbook();
-void Displaybook();
-void Author();
-void Titlelist();
-void Stock();
-void Issue();
-void bookret();
-void Addmembr();
-void Exit();
+FILE *BOOKS_IN_LIBARARY;
+FILE *USER_IN_DARABASE;
 
-char info[500];
+char *PRINT_TITLE = "\n\tBOOK_ID\tBOOK_NAME  BOOK_AUTHOR_NAME   SELF_NO   ISSUE_STATUS\n";
+char *PRINT_DASH = "\t-----------------------------------------------------------------\n";
+char *READ_STRING_VALUE = "\t%s\t\t%s\t\t%s\t\t%s\t\t%s";
+char *PRINT_STRING_VALUE = "\t%s\t%s\t\t%s\t\t%s\t\t%s\n";
 
-struct
-{
-  int bid;
-  char bname[25] ;
-  char author[25];
-  int nooftitles;
-  char titles[500];
-  int status;
-}book;
-struct
-{
-  int mid;
-  char mname[25] ;
-  char department[25];
-  int availibcard;
-  int phno;
+#define READ_FROM_FILE_NAME_PASSWORD "%s\t\t%s\t\t%s\t\t%s\t\t%s"
+#define PRINT_IN_FILE_NAME_PASSWORD "%s\t\t%s\t\t%s\t\t%s\t\t%s\n"
 
-}membr;
+int IS_ADMIMN_OR_STUDENT = 0;
+char User_Name[20],User_Password[16];
 
-//initializing the files used in the program
+struct BOOK_INFO {
 
-FILE *librecord;
-FILE *membrrecord;
-FILE *fp1;
-FILE *fp2;
-FILE *temp1;
-FILE *temp2;
-int main()
-{
-    int choice=0,i;
+	char ID[10];
+	char NAME[25];
+	char AUTHOR_NAME[25];
+	char PRICE[6];
+	char ISSUE[5];
+}BOOK[100];
 
-    printf("\n\t\t---Library Management System by Asif Ahmed Neloy---\n");
-    do{
-    printf("\n\t--MENU--\n \n 1. Add A New Book\n 2. Search a book \n 3. Display Complete Information\n 4. Display All Books of An Author\n 5. List Titles of a Book\n 6. List Count of Books (Issued & On Stock)\n 7. To Issue a Book \n 8. To Return a Book \n 9. Add A New Member\n 10.Exit the program\n\n\t Enter your choice <1-10>: ");
-    scanf("%i",&choice);
+struct USER_INFO {
 
-    switch (choice)
-    {
-        case 1:
-            Addbook();
-            break;
-        case 2:
-            Searchbook();
-            break;
-        case 3:
-            Displaybook();
-            break;
-        case 4:
-            Author();
-            break;
-        case 5:
-            Titlelist();
-            break;
-        case 6:
-            Stock();
-            break;
-        case 7:
-            Issue();
-            break;
-        case 8:
-            bookret();
-            break;
-        case 9:
-            Addmembr();
-            break;
-        case 10:
-            Exit();
-        default:
-            printf(" ! Invalid Input...\n");
-    }
-}while(choice!=10);
- return (0);
+	char USER_ID[10];
+	char USER_NAME[20];
+	char USER_PASSWORD[16];
+	char USER_TYPE[2];
+	char BOOK_BORROW_STATUS[10];
+}USER[100];
+
+#define VALUE_LIST_FOR_INPUT_OUTPUT BOOK[INDEX].ID,BOOK[INDEX].NAME,BOOK[INDEX].AUTHOR_NAME,\
+									BOOK[INDEX].PRICE,BOOK[INDEX].ISSUE
+
+#define FOR_LOOP_FOR_PRINT_VALUE_IN_FILE for(INDEX = 0; INDEX < RANGE ; INDEX++){\
+						fprintf(BOOKS_IN_LIBARARY,PRINT_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT);\
+					}
+
+#define VALUE_LIST_FOR_LOGIN_INFO USER[INDEX].USER_ID,USER[INDEX].USER_NAME,USER[INDEX].USER_PASSWORD,\
+															USER[INDEX].USER_TYPE,USER[INDEX].BOOK_BORROW_STATUS
+
+int COMMAND(int);
+int USER_NAME_AND_PASSWORD_CHECK(int);
+int ADMIN_COMMAND();
+int STUDENT_COMMAND();
+int ADD_BOOK();
+int DELETE_BOOK();
+int EDIT_BOOK();
+int BORROW_BOOK();
+int VIEW_BOOK();
+int SEARCH_BOOK();
+int RETURN_BOOK();
+int CHANGE_USER_NAME();
+int CHANGE_PASSWORD();
+int CLEAR();
+int HELP();
+int MY_PROFILE();
+int VIEW_PROFILE();
+int FORGET_USER_NAME();
+int FORGET_PASSWORD();
+int ADD_USER();
+int RESTART();
+int LOG_OUT();
+
+int main (){
+
+	int START = 2;
+	printf("\n\t\t\t   YOU HAVE 3 CHANCE TO LOGIN.\n\n");
+	USER_NAME_AND_PASSWORD_CHECK(START);
+
+	return 0;
 }
 
-void Addbook()
-{
-    int i;book.status=IN;
-            //opening the librecord file
-    librecord = fopen("librecord.txt","a+");
-    printf("Enter The number of The Book :(Integer) \n");
-        scanf("%d",&book.bid);
-    printf("Enter The Name of The Book :\n");
-        scanf("%s",book.bname);
-    printf("Enter The Name of Author :\n");
-        scanf("%s",book.author);
-    printf("Enter The Number of Titles Of The Book:(Integer)\n");
-        scanf("%d",&book.nooftitles);
-    fprintf(librecord,"\n%d\t%s\t%s\t%d\t%d\t",book.bid,book.bname,book.author,book.status,book.nooftitles);
-    printf("Enter The Titles Of The Book : \n");
-    for(i=0;i<book.nooftitles;i++)
-    {
-        scanf("%s",book.titles);
-        fprintf(librecord,"%s\t",book.titles);
-    }
-    fclose(librecord);
-    printf(" (' ' ) A New Book has been Added Successfully...\n");
+int COMMAND(int IS_ADMIMN_OR_STUDENT ){
 
+	if(IS_ADMIMN_OR_STUDENT){
+
+	   ADMIN_COMMAND();
+	}
+	else{
+
+		STUDENT_COMMAND();
+	}
+
+	return 0;
 }
 
-void Displaybook()
-{
-    librecord = fopen("librecord.txt","a+");
-    printf("\nBookid\tName\tAuthor\tStatus\tNo.\tTitles\n",info);
-    do
-    {
-        fgets(info,500,librecord);
-        printf("%s\n",info);
-    }while(!feof(librecord));
-    fclose(librecord);
-    membrrecord = fopen("membrrecord.txt","a+");
-    printf("\nMid\tName\tDept\tPh.no\tAvailablecards\n");
-    do
-    {
-        fgets(info,500,membrrecord);
-        printf("%s\n",info);
-    }while(!feof(membrrecord));
-    fclose(membrrecord);
+int USER_NAME_AND_PASSWORD_CHECK(int CHECK){
 
+	FILE *USER_NAME_AND_PASSWORD_FILE;
+
+	char CH[3];
+	int Valid_Username = 0;
+	int Valid_Password = 0;
+	int INDEX = 0;
+
+	printf("\nENTER USER NAME/ID: ");
+	gets(User_Name);
+	printf("\nENTER PASSWORD: ");
+	gets(User_Password);
+
+	USER_NAME_AND_PASSWORD_FILE = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"r");
+	if(USER_NAME_AND_PASSWORD_FILE){
+		INDEX = 0;
+	while(fscanf(USER_NAME_AND_PASSWORD_FILE,"%s %s %s %s %s",VALUE_LIST_FOR_LOGIN_INFO) != EOF){
+
+		if(strcmp(User_Name,USER[INDEX].USER_NAME) == 0 || strcmp(User_Name,USER[INDEX].USER_ID) == 0){
+
+										Valid_Username = 1;
+
+									if(strcmp(User_Password,USER[INDEX].USER_PASSWORD) == 0){
+
+										if(strcmp(USER[INDEX].USER_TYPE,"A") == 0){
+
+											IS_ADMIMN_OR_STUDENT = 1;
+											printf("\n\t\t\t\tADMIN_ID: %s",USER[INDEX].USER_ID);
+											printf("\n\n\t\t\tENTER \"HELP\" FOR OPERATING DETILS.\a\a");
+											COMMAND(IS_ADMIMN_OR_STUDENT);
+										}
+										else if(strcmp(USER[INDEX].USER_TYPE,"S") == 0){
+
+											IS_ADMIMN_OR_STUDENT = 0;
+											printf("\n\t\t\t\tSTUDENT_ID: %s",USER[INDEX].USER_ID);
+											printf("\n\n\t\t\tENTER HELP FOR OPERATING DETILS.\a\a");
+											COMMAND(IS_ADMIMN_OR_STUDENT);
+										}
+										else {
+
+											printf("\n\t\t\tTHE GIVEN INFORMATION IS WRONG.\a\a\n");
+										}
+									}
+									else {
+
+										printf("\n\t\t\tYOUR USER PASSWORD IS INCORRECT.\a\a\n");
+										printf("\n\t\t\tDID YOU FORGET YOUR PASSWORD?(Y/N): ");
+										gets(CH);
+										strupr(CH);
+										if(*CH == 'Y'){
+
+											FORGET_PASSWORD();
+										}
+										else{
+
+											if(CHECK > 0){
+
+												printf("\n\t\t\t YOU HAVE %d MORE CHANCE TO LOGIN.\n\n\a\a",CHECK);
+												USER_NAME_AND_PASSWORD_CHECK(CHECK - 1);
+											}
+											else{
+
+												printf("\n\t\t\tYOU FINISHED YOUR CHANCE TO LOGIN.\n\n\t\t\tPLEASE TRY AGAIN 15sec LATER.\a\a\n\n");
+												Sleep(15000);
+												main();
+											}
+										}
+									}
+								}
+								INDEX++;
+		}
+		fclose(USER_NAME_AND_PASSWORD_FILE);
+		if(Valid_Username == 0){
+
+			printf("\n\t\t\tYOUR USER NAME IS INCORRECT.\a\a\n");
+			printf("\n\t\t\tDID YOU FORGET YOUR USER NAME?(Y/N)");
+			gets(CH);
+			strupr(CH);
+			if(*CH == 'Y'){
+
+				FORGET_USER_NAME();
+			}
+			else {
+
+				if(CHECK > 0){
+
+					printf("\n\t\t\t YOU HAVE %d MORE CHANCE TO LOGIN.\n\n\a\a",CHECK);
+					USER_NAME_AND_PASSWORD_CHECK(CHECK - 1);
+				}
+				else{
+
+					printf("\n\t\t\tYOU FINISHED YOUR CHANCE TO LOGIN.\n\n\t\t\tPLEASE TRY AGAIN IN 15sec LATER.\a\a\n\n");
+					Sleep(15000);
+					main();
+				}
+			}
+		}
+	}
+	else{
+
+		printf("\n\n\t\t\tFILE DOSN'T FOUND.\a\a\n");
+	}
+	return 0;
 }
 
-void Searchbook()
-{
-    int i;
-    char Target[25],stats[3];
-    int Found=0;
-    if((librecord=fopen("librecord.txt","r"))==NULL)
-        printf(" ! The File is Empty...\n\n");
-    else
-    {
-        printf("\nEnter The Name Of Book : ");
-            scanf("%s",Target);
-        while(!feof(librecord)&& Found==0)
-        {
-        fscanf(librecord,"%d %s %s %d %d", &book.bid,book.bname,book.author,&book.status,&book.nooftitles);
-            if(strcmp(Target,book.bname)==0)
-                Found=1;
-            for(i=0;i<book.nooftitles;i++)
-                fscanf(librecord,"%s",book.titles);
-        }
-        if(Found)
-        {
-            if(book.status==IN)
-                strcpy(stats,"IN");
-            else
-                strcpy(stats,"OUT");
+int ADD_BOOK(){
 
-            printf("\nThe Unique ID of The Book:  %d\nThe Name of Book is:  %s\nThe Author is:  %s\nThe Book Status:%s\n\n",book.bid,book.bname,book.author,stats);
-            }
-        else if(!Found)
-            printf("! There is no such Entry...\n");
-        fclose(librecord);
-    }
+	int INDEX = 0,RANGE = 0;
+	char Garbez;
+	char READ_UNIQUE_ID[6],STORE_UNIQUE_ID[6];
+	int UNIQUE_ID = 0;
 
+	printf("\nHOW MANY BOOKS YOU WANT TO ADD: ");
+	scanf("%d%c",&RANGE,&Garbez);
+
+	for(INDEX = 0; INDEX < RANGE; INDEX++){
+
+		char STRING_ID[15] = "A1-";
+		BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_UNIQUE_ID,"r");
+
+		if(BOOKS_IN_LIBARARY){
+
+			fscanf(BOOKS_IN_LIBARARY,"%s",READ_UNIQUE_ID);
+			UNIQUE_ID = atoi(READ_UNIQUE_ID);
+			UNIQUE_ID+=1;
+			itoa(UNIQUE_ID,STORE_UNIQUE_ID,10);
+			strcat(STRING_ID,STORE_UNIQUE_ID);
+
+			fclose(BOOKS_IN_LIBARARY);
+
+			BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_UNIQUE_ID,"w");
+			fprintf(BOOKS_IN_LIBARARY,"%d",UNIQUE_ID);
+			fclose(BOOKS_IN_LIBARARY);
+		}
+		else{
+
+			printf("\n\t\tFILE_ADDRESS_FOR_UNIQUE_ID DOSEN'T FOUND.\a\a");
+			COMMAND(IS_ADMIMN_OR_STUDENT);
+		}
+
+		BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_BOOK_INFORMATION,"a+");
+
+		if(BOOKS_IN_LIBARARY){
+			strcpy(BOOK[INDEX].ID,STRING_ID);
+			printf("\nENTER BOOK NAME: ");
+			gets(BOOK[INDEX].NAME);
+			printf("ENTER AUTHOR NAME: ");
+			gets(BOOK[INDEX].AUTHOR_NAME);
+			printf("ENTER BOOK PRICE: ");
+			gets(BOOK[INDEX].PRICE);
+			strcpy(BOOK[INDEX].ISSUE,"NO");
+
+			fprintf(BOOKS_IN_LIBARARY,PRINT_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT);
+
+			fclose(BOOKS_IN_LIBARARY);
+			printf("\n\t\t\tA NEW BOOK ADDED SUCCESSFULLY\n");
+		}
+		else {
+
+			printf("\n\t\tFILE_ADDRESS_FOR_BOOK_INFORMATION DOSEN'T FOUND.\a\a");
+			COMMAND(IS_ADMIMN_OR_STUDENT);
+		}
+	}
+	COMMAND(IS_ADMIMN_OR_STUDENT);
+
+	return 0;
 }
 
-void Author()
-{
-    int i;
-    char Target[500];
-    int Found=0;
-    if((librecord=fopen("librecord.txt","r"))==NULL)
-    printf(" ! The file is empty... \n\n");
-    else
-    {
-        printf("\nEnter The Name Of Author : ");
-            scanf("%s",Target);
-        printf("\nBooks:");
-        while(!feof(librecord))
-        {
-            fscanf(librecord,"%d %s %s %d %d",&book.bid,book.bname,book.author,&book.status,&book.nooftitles);
-            if(strcmp(Target,book.author)==0)
-            {
-                Found=1;
-                printf("\n\t%s",book.bname);
-            }
-            for(i=0;i<book.nooftitles;i++)
-                fscanf(librecord,"%s",book.titles);
-        }
-        if(!Found)
-            printf(" ! There is no such Entry...\n");
-        fclose(librecord);
-    }
+int DELETE_BOOK(){
 
+	int INDEX = 0;
+	int Check_Counter = 0,RANGE = 0;
+	char INPUT_DELETE[20],CH[3];
+
+	printf("\n\t\t\tWHICH BOOK YOU WANT TO DELETE?\nENTER BOOK ID: ");
+	gets(INPUT_DELETE);
+	BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_BOOK_INFORMATION,"r");
+
+	if(BOOKS_IN_LIBARARY){
+
+		while(fscanf(BOOKS_IN_LIBARARY,READ_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT) != EOF){
+
+					if(strcmp(strupr(INPUT_DELETE),strupr(BOOK[INDEX].ID)) == 0){
+
+						printf(PRINT_TITLE);
+						printf(PRINT_DASH);
+						printf(PRINT_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT);
+						printf("\n\t\t\tDO YOU WANT TO DELETE THIS BOOK?: \a\a");
+						gets(CH);
+						strupr(CH);
+						printf("\n");
+						if(*CH == 'Y'){
+							printf("\n\t\t\tTHIS BOOK DELETE SUCCESSFULLY\n");
+							INDEX--;
+						}
+						else{
+
+							printf("\n\t\t\tYOU DON'T WANT TO DELETE THIS BOOK.\n");
+						}
+						Check_Counter++;
+					}
+					INDEX++;
+					RANGE++;
+		}
+		if(Check_Counter == 0){
+
+			printf("\n\n\t\t\tMAKE SURE YOU ENTER CORRECT BOOK ID.\a\a\n");
+			DELETE_BOOK();
+		}
+		fclose(BOOKS_IN_LIBARARY);
+
+		BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_BOOK_INFORMATION,"w");
+		for(INDEX = 0; INDEX < RANGE -1 ; INDEX++){
+
+			fprintf(BOOKS_IN_LIBARARY,PRINT_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT);
+		}
+		fclose(BOOKS_IN_LIBARARY);
+	}
+	else {
+
+		printf("\n\t\tFILE_ADDRESS_FOR_BOOK_INFORMATION DOSEN'T FOUND.\a\a");
+		COMMAND(IS_ADMIMN_OR_STUDENT);
+	}
+
+	COMMAND(IS_ADMIMN_OR_STUDENT);
+	return 0;
 }
-void Titlelist()
-{
-    int i;
-    char Target[500];
-    int Found=0;
-    if((librecord=fopen("librecord.txt","r"))==NULL)
-        printf(" ! The file is empty...\n\n");
-    else
-    {
-        printf("\nEnter The Book Name :");
-        scanf("%s",Target);
-        while(!feof(librecord)&& Found==0)
-        {
-            fscanf(librecord,"%d %s %s %d %d",&book.bid,book.bname,book.author,&book.status,&book.nooftitles);
-            if(strcmp(Target,book.bname)==0)
-                {
-                    Found=1;
-                    break;
-                }
-            for(i=0;i<book.nooftitles;i++)
-                fscanf(librecord,"%s",book.titles);
-        }
-        if(Found)
-        {
-            //printf("The Name of book is:               %s\n",book.bname);
-            printf("\nThe Titles:\n");
-            for(i=0;i<book.nooftitles;i++)
-            {
-                fscanf(librecord,"%s",book.titles);
-                    printf("%d.%s......\n",i+1,book.titles);
-            }
-        }
-        else if(!Found)
-            printf(" ! There is no such Entry...\n");
-        fclose(librecord);
-    }
 
+int EDIT_BOOK(){
+
+	char CH[3],CHOICE[25];
+	char CHANGE_VALUE[25],REPLACE[25];
+	int INDEX = 0,Check_Counter = 0,RANGE = 0;
+
+	do {
+
+		printf("\n\nENTER BOOK ID: ");
+		gets(CHOICE);
+		BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_BOOK_INFORMATION,"r");
+
+		INDEX = 0;
+		while(fscanf(BOOKS_IN_LIBARARY,READ_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT) != EOF){
+			if(strcmp(strupr(BOOK[INDEX].ID),strupr(CHOICE)) == 0){
+
+				printf(PRINT_TITLE);
+				printf(PRINT_DASH);
+				printf(PRINT_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT);
+				printf("\n\tWHAT YOU WANT TO CHANGE: ");
+				gets(CHANGE_VALUE);
+				if(strcmp(strupr(CHANGE_VALUE),"BOOK_ID") == 0){
+
+					printf("\n\t\t\tYOU CAN'T CHANGE BOOK ID.\a\a\n");
+				}
+				else if(strcmp(strupr(CHANGE_VALUE),"BOOK_NAME") == 0){
+
+					printf("\nENTER NEW NAME: ");
+					gets(REPLACE);
+					strcpy(BOOK[INDEX].NAME,REPLACE);
+				}
+				else if(strcmp(strupr(CHANGE_VALUE),"BOOK_AUTHOR_NAME") == 0){
+
+					printf("\nENTER NEW AUTHOR NAME: ");
+					gets(REPLACE);
+					strcpy(BOOK[INDEX].AUTHOR_NAME,REPLACE);
+				}
+				else if(strcmp(strupr(CHANGE_VALUE),"BOOK_PRICE") == 0){
+
+					printf("\nENTER NEW PRICE: ");
+					gets(REPLACE);
+					strcpy(BOOK[INDEX].PRICE,REPLACE);
+				}
+				else if (strcmp(strupr(CHANGE_VALUE),"ISSUE_STATUS") == 0){
+
+					printf("\n\t\t\tYOU CAN'T CHANGE BOOK ISSUE_STATUS.\a\a\n");
+				}
+				else {
+
+					printf("\n\t\tMAKE SURE YOU TYPE CORRECT ONE.\a\a\n");
+					EDIT_BOOK();
+				}
+				Check_Counter++;
+			}
+			INDEX++;
+			RANGE++;
+		}
+		fclose(BOOKS_IN_LIBARARY);
+		if(Check_Counter == 0){
+
+			printf("\n\t\tMAKE SURE YOU TYPE CORRECT ID.\a\a\n");
+			EDIT_BOOK();
+		}
+		BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_BOOK_INFORMATION,"w");
+		FOR_LOOP_FOR_PRINT_VALUE_IN_FILE
+		fclose(BOOKS_IN_LIBARARY);
+		printf("\n\t\tDO YOU WANT TO EDIT ANOTHER ONE?(Y\\N): ");
+		gets(CH);
+		printf("\n");
+		strupr(CH);
+	}while(*CH == 'Y');
+
+	COMMAND(IS_ADMIMN_OR_STUDENT);
+	return 0;
 }
-void Stock()
-{
-    int i,issuecount=0,stockcount=0;
-    char Issued[100][20];
-    int Found=0;
-    if((librecord=fopen("librecord.txt","r"))==NULL)
-        printf(" ! The file is empty...\n\n");
-    else
-    {
-        while(!feof(librecord))
-        {
-            fscanf(librecord,"%d %s %s %d %d",&book.bid,book.bname,book.author,&book.status,&book.nooftitles);
-            if(book.status==IN)
-            {
-                stockcount++;
-            }
-            else
-            {
-                issuecount++;
-            }
-            for(i=0;i<book.nooftitles;i++)
-                fscanf(librecord,"%s",book.titles);
-        }
-        fclose(librecord);
-    printf("\nCount of issued Books:%d\nCount of Books in Stock:%d\n",issuecount,stockcount-1);
-    }
 
+int BORROW_BOOK(){
+
+	char CHOICE[20],CH[3];
+	char USER_ID[20];
+	char *TOOK;
+	int INDEX = 0,INDEX1 = 0;
+	int RANGE1 = 0,Check_Counter = 0,RANGE = 0;
+	printf("\n\t\t\tWHICH BOOK YOU WANT TO BORROW?.\n\nENTER BOOK ID: ");
+	gets(CHOICE);
+	printf("\nENTER USER NAME: ");
+	gets(User_Name);
+	printf("\nENTER USER ID: ");
+	gets(USER_ID);
+
+	BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_BOOK_INFORMATION,"r");
+
+	while(fscanf(BOOKS_IN_LIBARARY,READ_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT) != EOF){
+
+		if((strcmp(strupr(BOOK[INDEX].ID),strupr(CHOICE)) == 0)){
+
+			printf(PRINT_TITLE);
+			printf(PRINT_DASH);
+			printf(PRINT_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT);
+			if(strcmp(strupr(BOOK[INDEX].ISSUE),"YES") == 0){
+
+					printf("\n\n\t\t\tTHS BOOK IS ALREADY ISSUED.\a\a\n");
+					printf("\n\t\tDO YOU WANT TO BORROW ANOTHER BOOK?(Y\\N): ");
+					gets(CH);
+					strupr(CH);
+					printf("\n");
+					if(*CH == 'Y'){
+
+				    	BORROW_BOOK();
+					}
+					else {
+
+						COMMAND(IS_ADMIMN_OR_STUDENT);
+					}
+		   }
+		   else{
+
+				printf("\n\n\t\tDO YOU WANT TO BORROW THIS BOOK?(Y\\N): ");
+				gets(CH);
+				printf("\n");
+				strupr(CH);
+				if(*CH == 'Y'){
+
+					if(strcmp(strupr(BOOK[INDEX].ISSUE),"NO") == 0){
+
+						TOOK = BOOK[INDEX].NAME;
+
+						USER_IN_DARABASE = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"r");
+						INDEX1 = 0;
+						RANGE1 = 0;
+						while(fscanf(USER_IN_DARABASE,READ_FROM_FILE_NAME_PASSWORD,USER[INDEX1].USER_ID,
+							USER[INDEX1].USER_NAME,USER[INDEX1].USER_PASSWORD,USER[INDEX1].USER_TYPE,
+								USER[INDEX1].BOOK_BORROW_STATUS) != EOF){
+
+								if((strcmp(User_Name,USER[INDEX1].USER_NAME) == 0) && (strcmp(USER_ID,USER[INDEX1].USER_ID) == 0)){
+
+									if(strcmp(USER[INDEX1].BOOK_BORROW_STATUS,"NIL") == 0){
+
+									strcpy(USER[INDEX1].BOOK_BORROW_STATUS,TOOK);
+									}
+									else {
+
+										printf("\n\n\t\t\tYOU BORROWED ANOTHER BOOK.\n\n\t\t\tPLEASE FIRST RETURN BOOK.\a\a\n");
+									}
+								}
+								INDEX1++;
+								RANGE1++;
+							}
+							fclose(USER_IN_DARABASE);
+
+							USER_IN_DARABASE = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"w");
+							for(INDEX1 = 0; INDEX1 < RANGE1; INDEX1++){
+
+								fprintf(USER_IN_DARABASE,PRINT_IN_FILE_NAME_PASSWORD,USER[INDEX1].USER_ID,
+								USER[INDEX1].USER_NAME,USER[INDEX1].USER_PASSWORD,USER[INDEX1].USER_TYPE,
+								USER[INDEX1].BOOK_BORROW_STATUS);
+							}
+							fclose(USER_IN_DARABASE);
+
+							strcpy(BOOK[INDEX].ISSUE,"YES");
+							printf(PRINT_TITLE);
+							printf(PRINT_DASH);
+							printf(PRINT_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT);
+
+							printf("\n\n\t\t\tTHIS BOOK IS SUCCESSFULLY ISSUED.\n");
+						}
+					}
+					else {
+
+						printf("\n\n\t\t\tYOU DON'T WANT TO ISSUE THIS BOOK.");
+					}
+				}
+				Check_Counter = 1;
+			 }
+			 RANGE++;
+			 INDEX++;
+			 printf("%d    %d\n",RANGE,INDEX);
+	}
+	fclose(BOOKS_IN_LIBARARY);
+	if(Check_Counter == 0) {
+
+		 printf("\n\n\t\t\tMAKE SURE YOU ENTER CORRECT ID.\a\a\n\n");
+		 BORROW_BOOK();
+	}
+	//fclose(BOOKS_IN_LIBARARY);
+
+	BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_BOOK_INFORMATION,"w");
+	FOR_LOOP_FOR_PRINT_VALUE_IN_FILE
+	fclose(BOOKS_IN_LIBARARY);
+
+	COMMAND(IS_ADMIMN_OR_STUDENT);
+	return 0;
 }
-void Addmembr()
-{
-    int i;
 
-    membrrecord = fopen("membrrecord.txt","a+");
-    printf("Enter The userid of the Member(Integer) :\n");
-        scanf("%d",&membr.mid);
-    printf("Enter The Name of the Member :\n");
-        scanf("%s",membr.mname);
-    printf("Enter The Department\n");
-        scanf("%s",membr.department);
+int VIEW_BOOK(){
 
-    printf("Enter The phone number of the member:\n");
-        scanf("%d",&membr.phno);
-    membr.availibcard=5;
-    fprintf(membrrecord,"\n%d\t%s\t%s\t%d\t%d\t",membr.mid,membr.mname,membr.department,membr.phno,    membr.availibcard);
-    fclose(membrrecord);
-    printf("\n (' ') Added  A New member Successfully...\n");
+	int INDEX = 0;
 
+	BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_BOOK_INFORMATION,"r");
+	if(BOOKS_IN_LIBARARY){
+	printf("\n");
+	printf(PRINT_TITLE);
+	printf(PRINT_DASH);
+	while(fscanf(BOOKS_IN_LIBARARY,READ_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT) != EOF){
 
+		printf(PRINT_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT);
+		INDEX++;
+	}
+	fclose(BOOKS_IN_LIBARARY);
+	COMMAND(IS_ADMIMN_OR_STUDENT);
+	}
+	else{
+
+		printf("\n\t\t\tFILE_ADDRESS_FOR_BOOK_INFORMATION DOSEN'T FOUND.\a\a");
+	}
+	return 0;
 }
-void Issue()
-{
-    int mid,i,Found1=0,Found2=0;char issubookname[20];
-    //temp1=librecord;temp2=membrrecord;
-    printf("\nEnter The userid of the Member : \n");
-        scanf("%d",&mid);
-    if((membrrecord=fopen("membrrecord.txt","r"))==NULL)
-        printf(" ! The file is empty...\n\n");
-    else
-    {
-        while(!feof(membrrecord)&& Found1==0)
-        {
-            fscanf(membrrecord,"%d %s %s %d %d ",&membr.mid,membr.mname,membr.department,&membr.phno,&membr.availibcard);
-            if(mid==membr.mid)
-            {
-                Found1=1;
-            }
-        }
-        if(Found1)
-        {
-            if(membr.availibcard<1)
-            {
-                printf(" ! Library card not available...\n");
-            }
-            else
-            {    printf("\nEnter The Name of book :");
-                scanf("%s",issubookname);
-                if((librecord=fopen("librecord.txt","r"))==NULL)
-                    printf(" ! The file is empty...\n\n");
-                else
-                {
-                    while(!feof(librecord)&& Found2==0)
-                    {
-                        fscanf(librecord,"%d %s %s %d %d", &book.bid,book.bname,book.author,&book.status,&book.nooftitles);
-                        if(strcmp(issubookname,book.bname)==0)
-                            Found2=1;
-                        for(i=0;i<book.nooftitles;i++)
-                            fscanf(librecord,"%s",book.titles);
-                    }
-                    if(Found2)
-                    {
-                        if(book.status==0)
-                        {
-                            printf(" ! Book already issued...\n");
-                        }
-                        else
-                        {
 
-                            fp2=fopen("fp2.txt","w");
-                            if((temp2=fopen("membrrecord.txt","r"))==NULL)
-                                printf(" ! The file is empty...\n\n");
-                            else
-                            {
-                                while(!feof(temp2))
-                                {
-                                    fscanf(temp2,"%d %s %s %d %d ",&membr.mid,membr.mname,membr.department,&membr.phno,&membr.availibcard);
+int SEARCH_BOOK(){
+
+	int INDEX = 0,L;
+	int Check_Counter = 0;
+	char INPUT_SEARCH[20],CH[2],D[2];
+	printf("\n\n\t\t\tWHICH WAY YOU WANT TO SEARCH?\n");
+	printf("\nPRESS 1 FOR SEARCH BY ID,\n\n\t PRESS 2 FOR SEARCH BY NAME: ");
+	gets(D);
+	printf("\n");
+	L=atoi(D);
+	switch (L){
+	case 1:
+		do{
+
+		Check_Counter = 0;
+		printf("\nENTER BOOK ID: ");
+		gets(INPUT_SEARCH);
+
+		BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_BOOK_INFORMATION,"r");
+
+			while(fscanf(BOOKS_IN_LIBARARY,READ_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT) != EOF){
+
+						if(strcmp(strupr(INPUT_SEARCH),strupr(BOOK[INDEX].ID)) == 0){
+
+							printf(PRINT_TITLE);
+							printf(PRINT_DASH);
+						printf(PRINT_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT);
+						Check_Counter = 1;
+					}
+						INDEX++;
+			}
+			if(Check_Counter == 0){
+				printf("\n\t\t\tBOOK IS NOT FOUND.\a\a");
+			}
+
+			printf("\n\t\t\tDO YOU WANT TO SEARCH AGAIN?(Y\\N): ");
+			gets(CH);
+			printf("\n");
+			strupr(CH);
+	}while(*CH == 'Y');
+
+	fclose(BOOKS_IN_LIBARARY);
+
+	COMMAND(IS_ADMIMN_OR_STUDENT);
+	case 2:
+		do{
+
+		Check_Counter = 0;
+		printf("\nENTER BOOK NAME: ");
+		gets(INPUT_SEARCH);
+
+		BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_BOOK_INFORMATION,"r");
 
 
-                                    if(mid==membr.mid)
-                                    {
-                                        membr.availibcard--;
-                                        fprintf(fp2,"\n %d\t%s\t%s\t%d\t%d\t",membr.mid,membr.mname,membr.department,membr.phno,    membr.availibcard);
-                                    }
-                                    else{
-                                        fprintf(fp2,"\n %d\t%s\t%s\t%d\t%d\t",membr.mid,membr.mname,membr.department,membr.phno,membr.availibcard);}
-                                    if(feof(temp2))
-                                        break;
-                                }
-                            }
-                            fclose(temp2);
-                            fclose(fp2);
+			while(fscanf(BOOKS_IN_LIBARARY,READ_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT) != EOF){
 
+					if(strcmp(strupr(INPUT_SEARCH),strupr(BOOK[INDEX].NAME)) == 0)	{
 
-                            fp1=fopen("fp1.txt","w");
-                            if((temp1=fopen("librecord.txt","r"))==NULL)
-                                printf(" ! The file is empty...\n\n");
-                            else
-                            {
-                                while(!feof(temp1))
-                                {
-                                      fscanf(temp1,"%d %s %s %d %d", &book.bid,book.bname,book.author,&book.status,&book.nooftitles);
-                                    if(feof(temp1))
-                                        break;
-                                    if(strcmp(issubookname,book.bname)!=0)
-                                    {
-                                        fprintf(fp1,"\n%d\t%s\t%s\t%d\t%d    \t",book.bid,book.bname,book.author,book.status,book.nooftitles);
-                                    }
-                                    else
-                                    {
-                                        fprintf(fp1,"\n%d\t%s\t%s\t%d\t%d\t",book.bid,book.bname,book.author,0,book.nooftitles);
-                                    }
-                                    for(i=0;i<book.nooftitles;i++)
-                                    {
-                                        fscanf(temp1,"%s",book.titles);
-                                        fprintf(fp1,"%s\t",book.titles);
-                                    }
-                                }
-                            }
-                            fclose(temp1);
-                            fclose(fp1);
-                            fclose(librecord);
-                            fclose(membrrecord);
-                            remove("librecord.txt");
-                            rename("fp1.txt","librecord.txt");
-                            remove("membrrecord.txt");
-                            rename("fp2.txt","membrrecord.txt");
-                            printf(" (' ') Book Successfully issued...\n");
-                        }
-                    }
-                    else if(!Found2)
-                        printf(" ! There is no such Book...\n");
+						printf(PRINT_TITLE);
+						printf(PRINT_DASH);
+						printf(PRINT_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT);
+						Check_Counter++;
+					}
+						INDEX++;
+			}
+			if(Check_Counter == 0){
 
-                }
-            }
-        }
-        else if(!Found1)
-            printf(" ! Invalid User id...\n");
+				printf("\n\t\t\tBOOK IS NOT FOUND.\a\a");
+			}
 
+			printf("\n\t\t\tDO YOU WANT TO SEARCH AGAIN?(Y\\N): ");
+			gets(CH);
+			printf("\n");
+			strupr(CH);
+	}while(*CH == 'Y');
 
-    }
+	fclose(BOOKS_IN_LIBARARY);
 
+	COMMAND(IS_ADMIMN_OR_STUDENT);
+	default:
+		printf("\n\t\t\tPLEASE ENTER THE CORRECT ONE.\a\a\n");
+		SEARCH_BOOK();
+	}
+	return 0;
 }
-void bookret()
-{
-int mid,i,Found1=0,Found2=0,flag=0;char retbookname[20];
-    temp1=librecord;temp2=membrrecord;
-    printf("\nEnter The userid of the Member :\n");
-        scanf("%d",&mid);
-    if((membrrecord=fopen("membrrecord.txt","r"))==NULL)
-        printf(" ! The file is empty...\n\n");
-    else
-    {
-        while(!feof(membrrecord)&& Found1==0)
-        {
-            fscanf(membrrecord,"%d %s %s %d %d ",&membr.mid,membr.mname,membr.department,&membr.phno,&membr.availibcard);
-            if(mid==membr.mid)
-            {
-                Found1=1;
-            }
-        }
-        if(Found1)
-        {
-            if(membr.availibcard>=5)
-            {
-                printf(" ! Error...\n");
-            }
-            else
-            {    printf("\nEnter The Name of book :");
-                scanf("%s",retbookname);
-                if((librecord=fopen("librecord.txt","r"))==NULL)
-                    printf(" ! The file is empty\n\n");
-                else
-                {
-                    while(!feof(librecord)&& Found2==0)
-                    {
-                        fscanf(librecord,"%d %s %s %d %d", &book.bid,book.bname,book.author,&book.status,&book.nooftitles);
-                        if(strcmp(retbookname,book.bname)==0)
-                        Found2=1;
-                        for(i=0;i<book.nooftitles;i++)
-                            fscanf(librecord,"%s",book.titles);
-                    }
-                    if(Found2)
-                    {
-                        if(book.status==1)
-                        {
-                            printf(" ! Error:Book already in stock...\n");
-                        }
-                        else
-                        {
 
-                            fp2=fopen("fp2.txt","w");
-                            if((temp2=fopen("membrrecord.txt","a+"))==NULL)
-                                printf(" ! The file is empty...\n\n");
-                            else
-                            {
-                                while(!feof(temp2))
-                                {
-                                    fscanf(temp2,"%d %s %s %d %d ",&membr.mid,membr.mname,membr.department,&membr.phno,&membr.availibcard);
+int HELP_FOR_ADMIN(){
 
-
-                                    if(mid==membr.mid)
-                                    {
-                                        membr.availibcard++;
-                                        fprintf(fp2,"\n %d\t%s\t%s\t%d\t%d\t",membr.mid,membr.mname,membr.department,membr.phno,    membr.availibcard);
-                                    }
-                                    else
-                                    {
-                                        fprintf(fp2,"\n %d\t%s\t%s\t%d\t%d\t",membr.mid,membr.mname,membr.department,membr.phno,membr.availibcard);
-                                    }
-                                    if(feof(temp2))
-                                        break;
-                                }
-                            }
-                            fclose(temp2);
-                            fclose(fp2);
-
-
-                            fp1=fopen("fp1.txt","w");
-                            if((temp1=fopen("librecord.txt","r"))==NULL)
-                                printf(" ! The file is empty...\n\n");
-                            else
-                            {
-                                while(!feof(temp1))
-                                {
-                                      fscanf(temp1,"%d %s %s %d %d", &book.bid,book.bname,book.author,&book.status,&book.nooftitles);
-                                    if(feof(temp1))
-                                        break;
-                                    if(strcmp(retbookname,book.bname)!=0)
-                                    {
-                                        fprintf(fp1,"\n%d\t%s\t%s\t%d\t%d    \t",book.bid,book.bname,book.author,book.status,book.nooftitles);
-                                    }
-                                    else
-                                    {
-                                        fprintf(fp1,"\n%d\t%s\t%s\t%d\t%d\t",book.bid,book.bname,book.author,1,book.nooftitles);
-                                    }
-                                    for(i=0;i<book.nooftitles;i++)
-                                    {
-                                        fscanf(temp1,"%s",book.titles);
-                                        fprintf(fp1,"%s\t",book.titles);
-                                    }
-                                }
-                            }
-                            fclose(temp1);
-                            fclose(fp1);
-                            fclose(librecord);
-                            fclose(membrrecord);
-                            printf("('') Book Successfully Returned...\n");
-                            remove("librecord.txt");
-                            rename("fp1.txt","librecord.txt");
-                            remove("membrrecord.txt");
-                            rename("fp2.txt","membrrecord.txt");
-
-                        }
-                    }
-                    else if(!Found2)
-                        printf("! There is no such Book...\n");
-
-                }
-            }
-        }
-        else if(!Found1)
-            printf("! Invalid User id...\n");
-    }
-
+	printf("\n\t\t*ENTER ADD_BOOK FOR ADDING BOOK.*\n");
+	printf("\n\t\t*ENTER DELETE_BOOK FOR DELETING BOOK.*\n");
+	printf("\n\t\t*ENTER EDIT_BOOK FOR EIDITING BOOK.*\n");
+	printf("\n\t\t*ENTER BORROW_BOOK FOR BORROW BOOK.*\n");
+	printf("\n\t\t*ENTER VIEW_BOOK FOR VIEWING BOOK.*\n");
+	printf("\n\t\t*ENTER SEARCH_BOOK FOR SEARCHING BOOK.*\n");
+	printf("\n\t\t*ENTER RETURN_BOOK FOR RETURNING BOOK.*\n");
+	printf("\n\t\t*ENTER LOG_OUT FOR LOGING OUT.*\n");
+	printf("\n\t\t*ENTER CLEAR FOR CLEANING CONSOL.*\n");
+	printf("\n\t\t*ENTER RESTART FOR RESTART THE SYSTEM.*\n");
+	printf("\n\t\t*ENTER CHANGE_USER_NAME FOR CHANGING USER NAME.*\n");
+	printf("\n\t\t*ENTER CHANGE_PASSWORD FOR CHANGING PASSWORD.*\n");
+	printf("\n\t\t*ENTER ADD_USER FOR ADDING NEW USER.*\n");
+	printf("\n\t\t*ENTER VIEW_PROFILE FOR VIEWING PROFILE .*\n");
+	COMMAND(IS_ADMIMN_OR_STUDENT);
+	return 0;
 }
-void Exit()
-{
-  exit(0);
+
+int HELP_FOR_STUDENT(){
+
+	printf("\n\t\t*ENTER VIEW_BOOK FOR VIEWING BOOK.*\n");
+	printf("\n\t\t*ENTER SEARCH_BOOK FOR SEARCHING BOOK.*\n");
+	//printf("\n\t\t*ENTER RETURN_BOOK FOR RETURNING BOOK.*\n");
+	printf("\n\t\t*ENTER LOG_OUT FOR LOGING OUT.*\n");
+	printf("\n\t\t*ENTER CLEAR FOR CLEANING CONSOL.*\n");
+	printf("\n\t\t*ENTER CHANGE_USER_NAME FOR CHANGING USER NAME.*\n");
+	printf("\n\t\t*ENTER CHANGE_PASSWORD FOR CHANGING PASSWORD.*\n");
+	printf("\n\t\t*ENTER MY_PROFILE FOR PROFILE INFORMATION.*\n");
+	COMMAND(IS_ADMIMN_OR_STUDENT);
+
+	return 0;
+}
+
+int RETURN_BOOK(){
+
+	char CHOICE[20],USER_ID[20],TOOK_B[20];
+	int INDEX = 0,INDEX1 = 0,RANGE1 = 0,Check_Counter = 0,RANGE = 0;
+
+	printf("\n\n\t\t\tWHICH BOOK YOU WANT TO RETURN?\n\nENTER BOOK ID: ");
+	gets(CHOICE);
+
+	BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_BOOK_INFORMATION,"r");
+
+		while(fscanf(BOOKS_IN_LIBARARY,READ_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT) != EOF){
+
+					if(strcmp(strupr(BOOK[INDEX].ID),strupr(CHOICE)) == 0){
+
+						if(strcmp(strupr(BOOK[INDEX].ISSUE),"YES") == 0){
+
+							printf(PRINT_TITLE);
+							printf(PRINT_DASH);
+							printf(PRINT_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT);
+							strcpy(BOOK[INDEX].ISSUE,"NO");
+							printf("\nENTER USER NAME: ");
+							gets(User_Name);
+							printf("\nENTER USER ID:");
+							gets(USER_ID);
+							printf("\nENTER RETURN BOOK NAME: ");
+							gets(TOOK_B);
+							USER_IN_DARABASE = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"r");
+							while(fscanf(USER_IN_DARABASE,READ_FROM_FILE_NAME_PASSWORD,USER[INDEX1].USER_ID,
+								USER[INDEX1].USER_NAME,USER[INDEX1].USER_PASSWORD,USER[INDEX1].USER_TYPE,USER[INDEX1].BOOK_BORROW_STATUS) != EOF){
+
+								if((strcmp(User_Name,USER[INDEX1].USER_NAME)) == 0 && (strcmp(USER_ID,USER[INDEX1].USER_ID) == 0)){
+
+									if(strcmp(USER[INDEX1].BOOK_BORROW_STATUS,TOOK_B) == 0){
+
+									strcpy(USER[INDEX1].BOOK_BORROW_STATUS,"NIL");
+									}
+									/*else {
+										printf("\n\n\t\t\tYOU BORROWED ANOTHER BOOK.\n\n\t\t\tPLEASE FIRST RETURN BOOK.\a\a\n");
+									}*/
+								}
+								INDEX1++;
+								RANGE1++;
+							}
+
+							fclose(USER_IN_DARABASE);
+							USER_IN_DARABASE = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"w");
+
+							for(INDEX1 = 0; INDEX1 < RANGE1; INDEX1++){
+
+								fprintf(USER_IN_DARABASE,PRINT_IN_FILE_NAME_PASSWORD,USER[INDEX1].USER_ID,
+								USER[INDEX1].USER_NAME,USER[INDEX1].USER_PASSWORD,USER[INDEX1].USER_TYPE,USER[INDEX1].BOOK_BORROW_STATUS);
+							}
+							fclose(USER_IN_DARABASE);
+							printf("\n\t\t\tTHIS BOOK RECIVED SUCCESSFULLY.\n");
+						}
+						else{
+
+							printf(PRINT_TITLE);
+							printf(PRINT_DASH);
+							printf(PRINT_STRING_VALUE,VALUE_LIST_FOR_INPUT_OUTPUT);
+							printf("\n\t\t\t THIS BOOK ALREADY IN LIBARY.\a\a\n");
+							printf("\n\t\t\tMAKE SURE YOU ENTER CORRECT ID.\a\a\n");
+
+							RETURN_BOOK();
+						}
+						Check_Counter++;
+					}
+					RANGE++;
+					INDEX++;
+		}
+		if(Check_Counter == 0){
+
+			printf("\n\t\t\tMAKE SURE YOU ENTER CORRECT ID.\a\a\n");
+			RETURN_BOOK();
+		}
+	fclose(BOOKS_IN_LIBARARY);
+
+	BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_BOOK_INFORMATION,"w");
+	FOR_LOOP_FOR_PRINT_VALUE_IN_FILE
+	fclose(BOOKS_IN_LIBARARY);
+
+	COMMAND(IS_ADMIMN_OR_STUDENT);
+	return 0;
+}
+
+int LOG_OUT(){
+
+	exit(1);
+	return 0;
+}
+
+int CLEAR(){
+
+	system("cls");
+	COMMAND(IS_ADMIMN_OR_STUDENT);
+	return 0;
+}
+
+int RESTART(){
+
+	int START = 0;
+	char CHOISE[2];
+
+	printf("\n\t\tDO YOU WANT TO RESTART THE SYSTEM?(Y\\N): \a\a");
+	gets(CHOISE);
+	strupr(CHOISE);
+
+	if(*CHOISE == 'Y'){
+
+	BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_UNIQUE_ID,"w");
+
+	fprintf(BOOKS_IN_LIBARARY,"%d",START);
+
+	fclose(BOOKS_IN_LIBARARY);
+
+	BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_BOOK_INFORMATION,"w");
+
+	fclose(BOOKS_IN_LIBARARY);
+	BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_UNIQUE_ID_FOR_USER,"w");
+	fprintf(BOOKS_IN_LIBARARY,"%d",START);
+	fclose(BOOKS_IN_LIBARARY);
+	printf("\n\t\t\tRESTART SUCCESSFUL.\a");
+	COMMAND(IS_ADMIMN_OR_STUDENT);
+	}
+	else{
+
+		COMMAND(IS_ADMIMN_OR_STUDENT);
+	}
+
+	return 0;
+}
+
+int CHANGE_USER_NAME(){
+
+	char CH[3];
+	char INPUT_NEW_USER_NAME[20];
+	char INPUT_OLD_USER_NAME[20];
+	int INDEX = 0,RANGE = 0,CHECK_COUNTER = 0;
+	int IS_VALID_USER_NAME = 0;
+
+	printf("\n\t\t\tDO YOU WANT TO CHANGE YOUR USER NAME(Y\\N): \a\a");
+	gets(CH);
+	strupr(CH);
+	if(*CH == 'Y'){
+
+		printf("\nENTER YOUR OLD USER NAME: ");
+		gets(INPUT_OLD_USER_NAME);
+
+		BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"r");
+
+		while(fscanf(BOOKS_IN_LIBARARY,"%s %s %s %s %s",VALUE_LIST_FOR_LOGIN_INFO) != EOF){
+
+				if(strcmp(INPUT_OLD_USER_NAME,USER[INDEX].USER_NAME) == 0){
+
+					IS_VALID_USER_NAME = 1;
+					printf("\nENTER NEW USER NAME: ");
+					gets(INPUT_NEW_USER_NAME);
+					if(strcmp(INPUT_NEW_USER_NAME,USER[INDEX].USER_PASSWORD) == 0){
+
+						printf("\n\n\t\t\tYOU CAN'T USE YOUR PASSWORD AS A USER NAME.\a\a\n");
+						CHANGE_USER_NAME();
+					}
+					else {
+
+						strcpy(USER[INDEX].USER_NAME,INPUT_NEW_USER_NAME);
+					}
+				}
+				INDEX++;
+				RANGE++;
+		}
+		fclose(BOOKS_IN_LIBARARY);
+		if(IS_VALID_USER_NAME == 0){
+
+			printf("\n\t\tYOUR OLD USER NAME IS INCORRECT.\a\a\n");
+			CHANGE_USER_NAME();
+		}
+
+		BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"w");
+		for(INDEX = 0; INDEX < RANGE; INDEX++){
+
+			fprintf(BOOKS_IN_LIBARARY,"%s \t%s  \t%s  \t%s   \t%s\n",VALUE_LIST_FOR_LOGIN_INFO);
+		}
+		fclose(BOOKS_IN_LIBARARY);
+		COMMAND(IS_ADMIMN_OR_STUDENT);
+	}
+	else {
+
+		printf("\n\n\t\t\tYOU DON'T WANT TO CHANGE YOUR USER NAME.\a\a");
+		COMMAND(IS_ADMIMN_OR_STUDENT);
+	}
+
+	return 0;
+}
+
+int CHANGE_PASSWORD(){
+
+	char CH[3];
+	char INPUT_NEW_PASSWORD[16];
+	char INPUT_OLD_PASSWORD[16];
+	int INDEX = 0,RANGE = 0;
+	int IS_VALID_PASSWORD = 0;
+
+	printf("\n\t\t\tDO YOU WANT TO CHANGE YOUR PASSWORD(Y\\N): \a\a");
+	gets(CH);
+	strupr(CH);
+	if(*CH == 'Y'){
+
+		printf("\nENTER YOUR OLD PASSWORD: ");
+		gets(INPUT_OLD_PASSWORD);
+
+		BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"r");
+
+		while(fscanf(BOOKS_IN_LIBARARY,"%s %s %s %s %s",VALUE_LIST_FOR_LOGIN_INFO) != EOF){
+
+				if(strcmp(INPUT_OLD_PASSWORD,USER[INDEX].USER_PASSWORD) == 0){
+
+					IS_VALID_PASSWORD = 1;
+					printf("\nENTER NEW PASSWORD: ");
+					gets(INPUT_NEW_PASSWORD);
+					if(strcmp(INPUT_NEW_PASSWORD,USER[INDEX].USER_NAME) == 0){
+
+						printf("\n\n\t\t\tYOU CAN'T USE YOUR USER NAME AS A PASSWORD.\a\a\n");
+						CHANGE_PASSWORD();
+					}
+					else {
+
+						strcpy(USER[INDEX].USER_PASSWORD,INPUT_NEW_PASSWORD);
+					}
+				}
+				INDEX++;
+				RANGE++;
+		}
+		fclose(BOOKS_IN_LIBARARY);
+		if(IS_VALID_PASSWORD == 0){
+
+			printf("\n\t\tYOUR OLD PASSWORD IS INCORRECT.\a\a\n");
+			CHANGE_PASSWORD();
+		}
+
+		BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"w");
+		for(INDEX = 0; INDEX < RANGE; INDEX++){
+
+			fprintf(BOOKS_IN_LIBARARY,"%s \t%s  \t%s  \t%s\t\t%s\n",VALUE_LIST_FOR_LOGIN_INFO);
+		}
+		fclose(BOOKS_IN_LIBARARY);
+		COMMAND(IS_ADMIMN_OR_STUDENT);
+	}
+	else {
+
+		printf("\n\n\t\t\tYOU DON'T WANT TO CHANGE YOUR USER NAME.\a\a");
+		COMMAND(IS_ADMIMN_OR_STUDENT);
+	}
+
+	return 0;
+}
+
+int ADMIN_COMMAND(){
+
+	char INPUT_COMMAND[25];
+
+	printf("\n\n\nCOMMAND: ");
+	gets(INPUT_COMMAND);
+
+	if(strcmp(strupr(INPUT_COMMAND),"ADD_BOOK") == 0){
+
+		ADD_BOOK();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"DELETE_BOOK") == 0){
+
+		DELETE_BOOK();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"EDIT_BOOK") == 0){
+
+		EDIT_BOOK();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"BORROW_BOOK") == 0){
+
+		BORROW_BOOK();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"VIEW_BOOK") == 0){
+
+		VIEW_BOOK();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"SEARCH_BOOK") == 0){
+
+		SEARCH_BOOK();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"LOG_OUT") == 0){
+
+		LOG_OUT();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"RETURN_BOOK") == 0){
+
+		RETURN_BOOK();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"HELP") == 0){
+
+		HELP_FOR_ADMIN();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"CLEAR") == 0){
+
+		CLEAR();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"RESTART") == 0){
+
+		RESTART();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"CHANGE_USER_NAME") == 0){
+
+		CHANGE_USER_NAME();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"CHANGE_PASSWORD") == 0){
+
+		CHANGE_PASSWORD();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"VIEW_PROFILE") == 0){
+
+		VIEW_PROFILE();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"ADD_USER") == 0){
+
+		ADD_USER();
+	}
+	else {
+
+		printf("\n\t\t\tMAKE SURE YOU WRITE THE CORRECT ONE.\n\a\a");
+		COMMAND(IS_ADMIMN_OR_STUDENT);
+	}
+
+	return 0;
+}
+
+int STUDENT_COMMAND(){
+
+	char INPUT_COMMAND[25];
+
+	printf("\n\n\nCOMMAND: ");
+	gets(INPUT_COMMAND);
+
+    if(strcmp(strupr(INPUT_COMMAND),"VIEW_BOOK") == 0){
+
+		VIEW_BOOK();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"SEARCH_BOOK") == 0){
+
+		SEARCH_BOOK();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"LOG_OUT") == 0){
+
+		LOG_OUT();
+	}
+	/*else if(strcmp(strupr(INPUT_COMMAND),"RETURN_BOOK") == 0){
+		RETURN_BOOK();
+	}*/
+	else if(strcmp(strupr(INPUT_COMMAND),"HELP") == 0){
+
+		HELP_FOR_STUDENT();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"CLEAR") == 0){
+
+		CLEAR();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"CHANGE_USER_NAME") == 0){
+
+		CHANGE_USER_NAME();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"CHANGE_PASSWORD") == 0){
+
+		CHANGE_PASSWORD();
+	}
+	else if(strcmp(strupr(INPUT_COMMAND),"MY_PROFILE") == 0){
+
+		MY_PROFILE();
+	}
+	else {
+
+		printf("\n\t\t\tMAKE SURE YOU WRITE THE CORRECT ONE.\n\a\a");
+		COMMAND(IS_ADMIMN_OR_STUDENT);
+	}
+
+	return 0;
+}
+
+int MY_PROFILE(){
+
+	int INDEX = 0;
+	char CH[2];
+
+	BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"r");
+	printf("\n\tUSER_ID\t USER_NAME\tUSER_PASSWORD\tUSER_TYPE\tBORROW_STATUS\n");
+	printf(PRINT_DASH);
+	while(fscanf(BOOKS_IN_LIBARARY,READ_FROM_FILE_NAME_PASSWORD,VALUE_LIST_FOR_LOGIN_INFO) != EOF){
+
+		if(strcmp(User_Name,USER[INDEX].USER_NAME) == 0 && strcmp(User_Password,USER[INDEX].USER_PASSWORD) == 0){
+
+			printf("\t%s\t %s\t\t%s\t\t%s\t\t%s\n",VALUE_LIST_FOR_LOGIN_INFO);
+		}
+		INDEX++;
+	}
+
+	fclose(BOOKS_IN_LIBARARY);
+	printf("\n\t\t\tDO YOU WANT TO VIEW AGAIN(Y/N) ");
+	gets(CH);
+	strupr(CH);
+	if(*CH == 'Y'){
+
+		MY_PROFILE();
+	}
+	else {
+
+		COMMAND(IS_ADMIMN_OR_STUDENT);
+	}
+	return 0;
+}
+
+int VIEW_PROFILE(){
+
+	char GARBEZ,CH[2];
+	int INDEX = 0,VIEW_TYPE;
+
+		printf("\nWHAT YOU WANT TO VIEW:\n\t\t\t PRESS 1\"FOR ALL STUDENT PROFILE\"\n\
+			PRESS 2\"FOR ALL ADMIN PROFILE\"\n\
+			   PRESS 3\"FOR MY PROFILE\"");
+		scanf("%d%c",&VIEW_TYPE,&GARBEZ);
+
+		if(VIEW_TYPE == 1){
+
+			BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"r");
+
+			printf("\n\tUSER_ID\t  USER_NAME\tUSER_PASSWORD\tUSER_TYPE\tBORROW_STATUS\n");
+			printf(PRINT_DASH);
+			INDEX = 0;
+			while(fscanf(BOOKS_IN_LIBARARY,READ_FROM_FILE_NAME_PASSWORD,VALUE_LIST_FOR_LOGIN_INFO) != EOF){
+
+				if(strcmp(strupr(USER[INDEX].USER_TYPE),"S") == 0){
+
+						printf("\t%s \t%s\t\t%s\t\t%s\t\t%s\n",VALUE_LIST_FOR_LOGIN_INFO);
+				}
+				INDEX++;
+			}
+			fclose(BOOKS_IN_LIBARARY);
+			printf("\n\t\t\tDO YOU WANT TO VIEW AGAIN(Y\\N) ");
+			gets(CH);
+			strupr(CH);
+			if(*CH == 'Y'){
+
+				VIEW_PROFILE();
+			}
+			else{
+
+				COMMAND(IS_ADMIMN_OR_STUDENT);
+			}
+
+		}
+		else if(VIEW_TYPE == 2){
+
+
+			BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"r");
+
+			printf("\n\tUSER_ID\t  USER_NAME\tUSER_PASSWORD\tUSER_TYPE\n");
+			printf(PRINT_DASH);
+			INDEX = 0;
+			while(fscanf(BOOKS_IN_LIBARARY,READ_FROM_FILE_NAME_PASSWORD,VALUE_LIST_FOR_LOGIN_INFO) != EOF){
+
+				if(strcmp(strupr(USER[INDEX].USER_TYPE),"A") == 0){
+
+						printf("\t%s \t%s\t\t%s\t\t%s\n",VALUE_LIST_FOR_LOGIN_INFO);
+				}
+				INDEX++;
+			}
+			fclose(BOOKS_IN_LIBARARY);
+			printf("\n\t\t\tDO YOU WANT TO VIEW AGAIN(Y/N) ");
+			gets(CH);
+			strupr(CH);
+			if(*CH == 'Y'){
+
+				VIEW_PROFILE();
+			}
+			else{
+
+				COMMAND(IS_ADMIMN_OR_STUDENT);
+			}
+		}
+		else if(VIEW_TYPE == 3){
+
+			BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"r");
+			printf("\n\tUSER_ID\t  USER_NAME\tUSER_PASSWORD\tUSER_TYPE\n");
+			printf(PRINT_DASH);
+			INDEX = 0;
+			while(fscanf(BOOKS_IN_LIBARARY,READ_FROM_FILE_NAME_PASSWORD,VALUE_LIST_FOR_LOGIN_INFO) != EOF){
+
+				if(strcmp(User_Name,USER[INDEX].USER_NAME) == 0 && strcmp(User_Password,USER[INDEX].USER_PASSWORD) == 0){
+
+					printf("\t*%s \t%s\t\t%s\t\t\t%s\n",VALUE_LIST_FOR_LOGIN_INFO);
+				}
+				INDEX++;
+			}
+
+			fclose(BOOKS_IN_LIBARARY);
+			printf("\n\t\t\tDO YOU WANT TO VIEW AGAIN(Y/N) ");
+			gets(CH);
+			strupr(CH);
+			if(*CH == 'Y'){
+
+				VIEW_PROFILE();
+			}
+			else {
+
+				COMMAND(IS_ADMIMN_OR_STUDENT);
+			}
+		}
+		else {
+
+			printf("\n\n\t\t\tYOU ENTER THE WRONG CHOICE.\a\a\n");
+			VIEW_PROFILE();
+		}
+
+	return 0;
+}
+
+int FORGET_USER_NAME(){
+
+	char USER_TYPE[3],USER_ID[20];
+	char INPUT_NEW_USER_NAME[20];
+	int INDEX = 0,IS_VALID_USER_NAME = 0,RANGE = 0;
+
+	printf("\nENTER YOUR ID: ");
+	gets(USER_ID);
+	printf("\nENTER YOUR USER TYPE: ");
+	gets(USER_TYPE);
+	BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"r");
+
+	while(fscanf(BOOKS_IN_LIBARARY,READ_FROM_FILE_NAME_PASSWORD,VALUE_LIST_FOR_LOGIN_INFO) != EOF){
+
+		if(strcmp(USER_ID,USER[INDEX].USER_ID) == 0 && strcmp(USER_TYPE,USER[INDEX].USER_TYPE) == 0){
+
+					IS_VALID_USER_NAME = 1;
+					printf("\nENTER NEW USER NAME: ");
+					gets(INPUT_NEW_USER_NAME);
+					if(strcmp(INPUT_NEW_USER_NAME,USER[INDEX].USER_PASSWORD) == 0){
+
+						printf("\n\n\t\t\tYOU CAN'T USE YOUR USER NAME AS A PASSWORD.\a\a\n");
+						FORGET_USER_NAME();
+					}
+					else {
+
+						strcpy(USER[INDEX].USER_NAME,INPUT_NEW_USER_NAME);
+					}
+				}
+		INDEX++;
+		RANGE++;
+	}
+	if(IS_VALID_USER_NAME == 0){
+
+		printf("\n\t\t\tYOU ENTERED THE WRONG ID.\a\a\n");
+		FORGET_USER_NAME();
+	}
+	fclose(BOOKS_IN_LIBARARY);
+
+	BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"w");
+	for(INDEX = 0; INDEX < RANGE;INDEX++){
+
+		fprintf(BOOKS_IN_LIBARARY,PRINT_IN_FILE_NAME_PASSWORD,VALUE_LIST_FOR_LOGIN_INFO);
+	}
+	fclose(BOOKS_IN_LIBARARY);
+	main();
+	return 0;
+}
+
+int FORGET_PASSWORD(){
+
+	char USER_TYPE[3],USER_ID[20];
+	char INPUT_NEW_PASSWORD[20];
+	int INDEX = 0,IS_VALID_PASSWORD = 0,RANGE = 0;
+
+	printf("\nENTER YOUR ID: ");
+	gets(USER_ID);
+	printf("\nENTER YOUR USER TYPE: ");
+	gets(USER_TYPE);
+	BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"r");
+
+	while(fscanf(BOOKS_IN_LIBARARY,READ_FROM_FILE_NAME_PASSWORD,VALUE_LIST_FOR_LOGIN_INFO) != EOF){
+
+		if(strcmp(USER_ID,USER[INDEX].USER_ID) == 0 && strcmp(USER_TYPE,USER[INDEX].USER_TYPE) == 0){
+
+					IS_VALID_PASSWORD = 1;
+					printf("\nENTER NEW PASSWORD: ");
+					gets(INPUT_NEW_PASSWORD);
+					if(strcmp(INPUT_NEW_PASSWORD,USER[INDEX].USER_NAME) == 0){
+
+						printf("\n\n\t\t\tYOU CAN'T USE YOUR PASSWORD AS A USER NAME.\a\a\n");
+						FORGET_PASSWORD();
+					}
+					else {
+
+						strcpy(USER[INDEX].USER_PASSWORD,INPUT_NEW_PASSWORD);
+					}
+				}
+		INDEX++;
+		RANGE++;
+	}
+	if(IS_VALID_PASSWORD == 0){
+
+		printf("\n\t\t\tYOU ENTERED THE WRONG ID.\a\a\n");
+		FORGET_PASSWORD();
+	}
+	fclose(BOOKS_IN_LIBARARY);
+
+	BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"w");
+	for(INDEX = 0; INDEX < RANGE;INDEX++){
+
+		fprintf(BOOKS_IN_LIBARARY,PRINT_IN_FILE_NAME_PASSWORD,VALUE_LIST_FOR_LOGIN_INFO);
+	}
+	fclose(BOOKS_IN_LIBARARY);
+	main();
+	return 0;
+}
+
+int ADD_USER(){
+
+	int INDEX = 0,RANGE = 0;
+	char READ_UNIQE_ID[20],STORE_UNIQE_ID[20],GARVEZ_STRING[10];
+	char STORE_PASSWORD[5],CH[2],GARVEZ,STRING[35];
+	int USER_RAND_PASSWORD;
+	int UNIQE_ID;
+
+	do
+	{
+		printf("\n\t\t\tHOW MANY USER YOU WANT TO ADD: ");
+		scanf("%d%c",&RANGE,&GARVEZ);
+
+
+		for(INDEX = 0; INDEX < RANGE; INDEX++){
+
+			strcpy(STRING,"U-");
+			srand(time(0));
+			BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_UNIQUE_ID_FOR_USER,"r");
+			fscanf(BOOKS_IN_LIBARARY,"%s",READ_UNIQE_ID);
+			UNIQE_ID = atoi(READ_UNIQE_ID);
+			UNIQE_ID +=1;
+			itoa(UNIQE_ID,STORE_UNIQE_ID,10);
+			strcat(STRING,STORE_UNIQE_ID);
+			fclose(BOOKS_IN_LIBARARY);
+
+			BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_UNIQUE_ID_FOR_USER,"w");
+			fprintf(BOOKS_IN_LIBARARY,"%s",STORE_UNIQE_ID);
+			fclose(BOOKS_IN_LIBARARY);
+
+			strcpy(USER[INDEX].USER_ID,STRING);
+			*STORE_UNIQE_ID = NULL;
+			printf("\nENTER USER NAME: ");
+			gets(USER[INDEX].USER_NAME);
+			printf("\nENTER USER TYPE: ");
+			gets(USER[INDEX].USER_TYPE);
+			USER_RAND_PASSWORD = (rand()%60)+500;
+			itoa(USER_RAND_PASSWORD,STORE_PASSWORD,10);
+			strcpy(USER[INDEX].USER_PASSWORD,STORE_PASSWORD);
+			if(strcmp(strupr(USER[INDEX].USER_TYPE),"A") == 0){
+
+				strcpy(USER[INDEX].BOOK_BORROW_STATUS,"RST");
+			}
+			else if(strcmp(strupr(USER[INDEX].USER_TYPE),"S") == 0){
+
+				strcpy(USER[INDEX].BOOK_BORROW_STATUS,"NIL");
+			}
+			else{
+
+				printf("\n\t\t\tYOU ENTER WRONG USER TYPE.\a\a\n");
+				ADD_USER();
+			}
+			BOOKS_IN_LIBARARY = fopen(FILE_ADDRESS_FOR_USERNAME_PASSWORD_AND_INFO,"a+");
+			fprintf(BOOKS_IN_LIBARARY,PRINT_IN_FILE_NAME_PASSWORD,VALUE_LIST_FOR_LOGIN_INFO);
+			printf("\n\n\t\t\tA NEW USER IS SUCCESSFULLY ADDED.\n");
+			printf("\n\n\t\tNEW USER ID IS: %s\n\t\tNEW USER PASSWORD IS: %s\n",USER[INDEX].USER_ID,USER[INDEX].USER_PASSWORD);
+
+			fclose(BOOKS_IN_LIBARARY);
+		}
+		fclose(BOOKS_IN_LIBARARY);
+		printf("\n\t\t\tDO YOU WANT TO ADD AGAIN?(Y/N)");
+		gets(CH);
+		strupr(CH);
+	}while(*CH == 'Y');
+	COMMAND(IS_ADMIMN_OR_STUDENT);
+	return 0;
 }
