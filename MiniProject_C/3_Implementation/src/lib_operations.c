@@ -6,10 +6,10 @@ int Addbook(int operand1, int operand2)
     return operand1 + operand2;
 }
 
-int Searchbook(int operand1, int operand2)
+/*int Searchbook(int operand1, int operand2)
 {
     return operand1 + operand2;
-}
+}*/
 
 int Displaybook(int operand1, int operand2)
 {
