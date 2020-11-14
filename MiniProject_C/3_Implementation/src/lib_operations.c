@@ -39,7 +39,7 @@ int Issue(int operand1, int operand2)
 int bookret(int operand1, int operand2)
 {
     return operand1 - operand2;
-}*/
+}
 
 int Addmembr(int operand1, int operand2)
 {
@@ -48,7 +48,7 @@ int Addmembr(int operand1, int operand2)
 
 int Exit(int operand1, int operand2)
 {
-    if(0 == operand2)
+    if(0 == operand2)*/
         return 0;
     else
         return (operand1 / operand2)*100 ;
